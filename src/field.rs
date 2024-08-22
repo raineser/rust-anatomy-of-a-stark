@@ -1,4 +1,6 @@
 use primitive_types::{U256, U512};
+use std::ops::{Add, Sub, Mul, Div, Neg, BitXor};
+use std::fmt::{write, Display};
 
 const P:u128 =  1 + 407 * ( 1 << 119 );
 
@@ -16,6 +18,7 @@ pub fn xgd(x: U256, y: U256) -> (U256, U256, U256) {
     (old_s, old_t, old_r)
 }
 
+#[derive(Debug, PartialEq)]
 pub struct FieldElement {
     value: U256,
     p: U256
@@ -69,5 +72,90 @@ impl FieldElement {
     fn is_zero(&self) -> bool {
         self.value == U256::from(0)
     }
+
+    fn  generator(&self) -> Self {
+        FieldElement::new(U256::from(85408008396924667383611388730472331217u128))
+    }
+
+    fn primitive_nth_root(&self, n:u128 ) -> Self {
+        assert!(n <= 1 << 119 && (n & (n-1)) == 0);
+        let mut root = FieldElement::new(U256::from(85408008396924667383611388730472331217u128));
+        root
+    }
 }
 
+
+impl<'a, 'b> Add<&'a FieldElement> for &'b FieldElement {
+    type Output = FieldElement;
+    fn add(self, rhs: &FieldElement) -> Self::Output {
+        FieldElement::add(self, rhs)
+    }
+}
+
+impl<'a, 'b> Sub<&'a FieldElement> for &'b FieldElement {
+    type Output = FieldElement;
+    fn sub(self, rhs: &FieldElement) -> Self::Output {
+        FieldElement::subtract(self, rhs)
+    }
+}
+
+impl<'a, 'b> Mul<&'a FieldElement> for &'b FieldElement {
+    type Output = FieldElement;
+    fn mul(self, rhs: &FieldElement) -> Self::Output {
+        FieldElement::multiply(self, rhs)
+    }
+}
+
+impl<'a, 'b> Div<&'a FieldElement> for &'b FieldElement {
+    type Output = FieldElement;
+    fn div(self, rhs: &FieldElement) -> Self::Output {
+        FieldElement::divide(self, rhs)
+    }
+}
+
+impl<'b> Neg for &'b FieldElement {
+    type Output = FieldElement;
+    fn neg(self) -> Self::Output {
+        FieldElement::negate(self)
+    }
+}
+
+impl<'b> BitXor<u128> for &'b FieldElement {
+    type Output = FieldElement;
+    fn bitxor(self, exponenet: u128) -> Self::Output {
+        let mut acc = FieldElement::one();
+        let mut val = FieldElement::new(self.value);
+        for i in (0.. format!("{exponenet:b}").to_string().chars().count()).rev() {
+            acc = &acc * &acc;
+            if (1 << i) & exponenet != 0 {
+                acc = &acc * &val;
+            }
+        }
+        acc
+    }
+}
+
+impl Display for FieldElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        let one = FieldElement::one();
+        let two = FieldElement::new(U256::from(2));
+
+        assert_eq!(&one + &two, FieldElement::new(U256::from(3)));
+
+        let p_minus_one = FieldElement::new(U256::from(P) - U256::from(1));
+
+        assert_eq!(&one + &p_minus_one, FieldElement::zero());
+    }
+}
