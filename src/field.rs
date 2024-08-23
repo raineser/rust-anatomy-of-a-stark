@@ -18,7 +18,7 @@ pub fn xgd(x: U256, y: U256) -> (U256, U256, U256) {
     (old_s, old_t, old_r)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FieldElement {
     value: U256,
     p: U256
@@ -27,15 +27,15 @@ pub struct FieldElement {
 // functions that create new FieldElements
 impl FieldElement {
     
-    fn new(value: U256) -> Self {
+    pub fn new(value: U256) -> Self {
         Self{value: value, p: U256::from(P)}
     }
 
-    fn zero() -> Self {
+    pub fn zero() -> Self {
         FieldElement::new(U256::from(0))
     }
 
-    fn one() -> Self {
+    pub fn one() -> Self {
         FieldElement::new(U256::from(1))
     }
 
@@ -69,15 +69,15 @@ impl FieldElement {
 
     }
 
-    fn is_zero(&self) -> bool {
+    pub fn is_zero(&self) -> bool {
         self.value == U256::from(0)
     }
 
-    fn  generator(&self) -> Self {
+    pub fn generator(&self) -> Self {
         FieldElement::new(U256::from(85408008396924667383611388730472331217u128))
     }
 
-    fn primitive_nth_root(&self, n:u128 ) -> Self {
+    pub fn primitive_nth_root(&self, n:u128 ) -> Self {
         assert!(n <= 1 << 119 && (n & (n-1)) == 0);
         let mut root = FieldElement::new(U256::from(85408008396924667383611388730472331217u128));
         root
